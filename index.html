@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <title>Game of Life (Conway)</title>
+</head>
+<body>
+    <!-- CSS -->
+    <style>
+        body {
+            background: #f0f0ff;
+        }
+        td {
+            border: #eee solid 1px;
+        }
+    </style>
+    
+    <!-- HTML -->
+    <div id="board-container">
+    </div>
+    <div class="button-container">
+        <div class="btn"></div>
+        <div class="btn"></div>
+        <div class="btn"></div>
+    </div>
+
+    <!-- JS -->
+    <script>
+        let rows = 80;
+        let columns = 80;
+        let side = 20;
+        let photo = [];
+        let play = false;
+
+        // Control with the keyboard
+        document.addEventListener("keydown", (e) => {
+            // Prevent the scroll movement
+            e.preventDefault();
+
+            switch (e.keyCode) {
+                case 39:
+                    nextState();
+                    break;
+                case 32:
+                    changePlay()                    
+                case 8:
+                    clean()                
+                default:
+                    break;
+            }
+        })
+
+        setInterval(() => {
+            if(play) {
+                nextState()
+            }
+        },  200);
+
+        function changePlay() {
+            play = !play;
+
+            if(play) {
+                document.body.style.background = "white"
+            }
+            else  {
+                document.body.style.background = "#f0f0ff"
+            }
+        }
+
+        createBoard();
+
+        function createBoard() {
+            let html = "<table cellpadding=0 cellspacing=0 id='board'>";
+            for (let i = 0; i < rows; i++) {
+                html += "<tr>";
+                for (let j = 0; j < columns; j++) {
+                    html += `<td id="cell-${j + "-" + i}" onmouseup="changeState(${j}, ${i})">`;
+                    html += "</td>";
+                }
+                html += "</tr>";
+            }
+            html += "</table>";
+            let container = document.getElementById("board-container");
+            container.innerHTML = html;
+            let board = document.getElementById("board");
+            board.style.width = side * columns + "px";
+            board.style.height = side * rows + "px";
+        }
+
+        function changeState(x, y) {
+            let cell = document.getElementById(`cell-${x + "-" + y}`)
+            if(cell.style.background != "black"){
+                cell.style.background = "black";
+            }
+            else {
+                cell.style.background = "";
+            }
+        }
+
+        function clean() {            
+            for(let i = 0; i < rows; i++) {                
+                for(let j = 0; j < columns; j++) {
+                    let cell = document.getElementById(`cell-${i + "-" + j}`);
+                    cell.style.background = ""
+                }
+            }
+        }
+
+        function photography() {
+            photo = []
+            for(let i = 0; i < rows; i++) {
+                photo.push([])
+                for(let j = 0; j < columns; j++) {
+                    let cell = document.getElementById(`cell-${i + "-" + j}`);
+                    photo[i][j] = cell.style.background == "black";
+                }
+            }
+        }
+
+        function countLives(x, y) {
+            let alive = 0;
+
+            for(let i = -1; i <= 1; i++) {
+                for (let j = -1; j <= 1; j++) {
+                    if(i == 0 && j == 0) {
+                        continue;
+                    }                    
+                    try {
+                        if(photo[x + i][y + j]) {
+                             alive++;
+                        }
+                    } catch (e) {}
+                    if(alive > 3) {
+                        return alive;
+                    }
+                }
+            }
+            return alive;
+        }
+
+        function nextState() {
+            photography();
+
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < columns; j++) {
+                    let alive = countLives(i, j);
+                    let cell = document.getElementById(`cell-${i + "-" + j}`);
+
+                    // Cell is alive
+                    if(photo[i][j]) { 
+                        if(alive < 2 || alive > 3) {
+                            // Dies for loneliness or by overpopulation
+                            cell.style.background == "";
+                        }
+                        // Cell is dead
+                        else {
+                            if(alive == 3) {
+                                cell.style.background = "black"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+</body>
+</html>
